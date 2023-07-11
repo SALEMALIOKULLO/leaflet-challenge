@@ -3,7 +3,7 @@
 var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 var tectonicplatesUrl = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json"
 
-// Perform a GET request to the query URL
+// Perform a GET request 
 d3.json(queryUrl).then(function (data) {
   // Console log the data retrieved 
   console.log(data);
@@ -23,21 +23,21 @@ function chooseColor(depth){
 
 function createFeatures(earthquakeData) {
 
-  // Define a function that we want to run once for each feature in the features array.
-  // Give each feature a popup that describes the place and time of the earthquake.
+  // Define a function that we want to run 
+  // Give each feature a popup to describe earthquake
   function onEachFeature(feature, layer) {
     layer.bindPopup(`<h3>Location: ${feature.properties.place}</h3><hr><p>Date: ${new Date(feature.properties.time)}</p><p>Magnitude: ${feature.properties.mag}</p><p>Depth: ${feature.geometry.coordinates[2]}</p>`);
   }
 
-  // Create a GeoJSON layer that contains the features array on the earthquakeData object.
+  // Create a GeoJSON layer that contains the the earthquakeData object.
   // Run the onEachFeature function once for each piece of data in the array.
   var earthquakes = L.geoJSON(earthquakeData, {
     onEachFeature: onEachFeature,
 
-    // Point to layer used to alter markers
+    // Point to layer used to make the alter markers
     pointToLayer: function(feature, latlng) {
 
-      // Determine the style of markers based on properties
+      // Determine the style of markers features
       var markers = {
         radius: feature.properties.mag * 20000,
         fillColor: chooseColor(feature.geometry.coordinates[2]),
@@ -49,7 +49,7 @@ function createFeatures(earthquakeData) {
     }
   });
 
-  // Send our earthquakes layer to the createMap function/
+  // Send our earthquakes layer to the createMap feature 
   createMap(earthquakes);
 }
 
@@ -74,7 +74,7 @@ function createMap(earthquakes) {
     access_token: api_key
   });
 
-  // Create layer for tectonic plates
+  // Create the layer for tectonic plates
   tectonicPlates = new L.layerGroup();
 
     // Perform a GET request to the tectonicplatesURL
@@ -95,13 +95,13 @@ function createMap(earthquakes) {
         "Outdoors": outdoors
     };
 
-    // Create an overlay object to hold our overlay.
+    // Create an overlay object 
     var overlayMaps = {
         "Earthquakes": earthquakes,
         "Tectonic Plates": tectonicPlates
     };
     
-    // Create our map, giving it the satellite map and earthquakes layers to display on load.
+    // Create our map
   var myMap = L.map("map", {
     center: [
       37.09, -95.71
