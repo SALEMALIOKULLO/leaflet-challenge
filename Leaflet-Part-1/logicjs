@@ -1,83 +1,84 @@
-let queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+// url for the earthquake data
+var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 
-
-d3.json(queryUrl).then(function(earthquakeData) {
-    console.log(earthquakeData);
-    createFeatures(earthquakeData.features);
+// Create the map
+var myMap = L.map("map", {
+    center: [37.09, -95.71],
+    zoom: 5
 });
 
-function createMarker(feature, latlng) {
-    return L.circleMarker(latlng, {
-        radius: markerSize(feature.properties.mag),
-        fillColor: markerColor(feature.geometry.coordinates[2]),
-        color:"#000",
-        weight: 0.5,
-        opacity: 0.5,
-        fillOpacity: 1
-    });
-}
+// Add a tile layer to the map
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(myMap);
 
-function createFeatures(earthquakeData) {
-
-    function onEachFeature(feature, layer) {
-        layer.bindPopup(`<h3>Location:</h3> ${feature.properties.place}<h3> Magnitude:</h3> ${feature.properties.mag}<h3> Depth:</h3> ${feature.geometry.coordinates[2]}`);
-    }};
-
-    let earthquakes = L.geoJSON(earthquakeData, {
-        onEachFeature: onEachFeature,
-        pointToLayer: createMarker
-    });
-
-    createMap(earthquakes);
-    function createMap(earthquakes) {
-        
-        let street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          });
-    
-        
-        let myMap = L.map("map", {
-            center: [37.09, -95.71],
-            zoom: 5,
-            layers: [street, earthquakes]
-        });
-    }
-    L.control.layers(baseMaps, overlayMaps, {
-        collapsed: false
-    }).addTo(myMap); 
-    
-    let legend = L.control({position: 'bottomright'});
-
-    legend.onAdd = function (myMap) {
-
-        let div = L.DomUtil.create('div', 'info legend'),
-            grades = [-10, 10, 30, 60, 90],
-            labels = [],
-            legendInfo = "<h5>Magnitude</h5>";
-
-        for (let i = 0; i < grades.length; i++) {
-            div.innerHTML +=
-                '<i style="background:' + markerColor(grades[i] + 1) + '"></i> ' +
-                grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
-        }    
-
-        return div;
-
+// Retrieve and add the earthquake data to the map
+d3.json(url).then(function (data) {
+    function mapStyle(feature) {
+        return {
+            opacity: 1,
+            fillOpacity: 1,
+            fillColor: mapColor(feature.geometry.coordinates[2]),
+            color: "black",
+            radius: mapRadius(feature.properties.mag),
+            stroke: true,
+            weight: 0.5
         };
-        legend.addTo(myMap);
-    
-    
-    
-    function markerSize(magnitude) {
-        return magnitude * 5;
+
+        // Establish colors for depth
     }
-    
-    // Change marker color based on depth
-    function markerColor(depth) {
-        return depth > 90 ? '#d73027' :
-                depth > 70 ? '#fc8d59' :
-                depth > 50 ? '#fee08b' :
-                depth > 30 ? '#d9ef8b' :
-                depth > 10 ? '#91cf60' :
-                             '#1a9850' ;          
+    function mapColor(depth) {
+        switch (true) {
+            case depth > 90:
+                return "red";
+            case depth > 70:
+                return "orangered";
+            case depth > 50:
+                return "orange";
+            case depth > 30:
+                return "gold";
+            case depth > 10:
+                return "yellow";
+            default:
+                return "lightgreen";
+        }
     }
+    // Establish magnitude size
+    function mapRadius(mag) {
+        if (mag === 0) {
+            return 1;
+        }
+
+        return mag * 4;
+    }
+
+    // Add earthquake data to the map
+    L.geoJson(data, {
+
+        pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng);
+        },
+
+        style: mapStyle,
+
+        // Activate pop-up data when circles are clicked
+        onEachFeature: function (feature, layer) {
+            layer.bindPopup("Magnitude: " + feature.properties.mag + "<br>Location: " + feature.properties.place + "<br>Depth: " + feature.geometry.coordinates[2]);
+
+        }
+    }).addTo(myMap);
+
+// Add the legend with colors to corrolate with depth
+var legend = L.control({position: "bottomright"});
+legend.onAdd = function() {
+  var div = L.DomUtil.create("div", "info legend"),
+  depth = [-10, 10, 30, 50, 70, 90];
+
+  for (var i = 0; i < depth.length; i++) {
+    div.innerHTML +=
+    '<i style="background:' + mapColor(depth[i] + 1) + '"></i> ' + depth[i] + (depth[i + 1] ? '&ndash;' + depth[i + 1] + '<br>' : '+');
+  }
+  return div;
+};
+legend.addTo(myMap)
+});
