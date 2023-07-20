@@ -1,7 +1,7 @@
-//api to query our url
+//api to query using url
 let queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 
-//create our map 
+//map creation 
 let myMap = L.map("map", {
   center: [
       37.09, -95.71
@@ -10,38 +10,38 @@ let myMap = L.map("map", {
   
 });
 
-//add the title layer 
+//adding the title and the attributes  
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
 }).addTo(myMap);
 
-//perform get requests 
+//get requests to make sure it runs
 d3.json(queryUrl).then(function(data){
-  //once we get a response process the datwa 
+  //process the data and color depth 
   var earthquakeData = data.features;
   function getColor(depth){
     switch (true) {
       case depth > 90:
-          return "7c0a02";
+          return "#d73027";
         case depth > 70: 
-          return "#e30022"; 
+          return "#fc8d59"; 
         case depth > 50:
-          return "#ff5800";
+          return "#fee08b";
         case depth > 30:
-          return "#ffe135";
+          return "#d9ef8b";
         case depth > 10:
-          return "#b0bf1a";
+          return "#91cf60";
         default:
-          return "#fe6f5e";
+          return "#1a9850";
   }
 }
 
-//create the markers based on the magnitude size and style
+//markers based on magnitude size and color
 function getMarker (magnitude,depth){
   return{
     radius: magnitude * 4,
     fillColor: getColor(depth),
-    color:"grey",
+    color:"red",
     weight: 1,
     opacity:1
   };
@@ -53,10 +53,10 @@ earthquakeData.forEach(function(earthquake){
   var depth = coordinates[2];
   
   var markerOpt = getMarker(magnitude,depth);
-  //create markers with pop up 
+  //create pop up markers
   var marker = L.circleMarker([coordinates[1],coordinates[0]],markerOpt).bindPopup(`<h3>${earthquake.properties.place}<h3><hr><p>${new Date(earthquake.properties.time)}</p><hr><p>${earthquake.properties.mag}</p>`).addTo(myMap);
 });
-var myColors = ["#7c0a02", "#e30022", "#ff5800", "#ffe135", "#b0bf1a", "#fe6f5e"];
+var myColors = ["#d73027", "#fc8d59", "#fee08b", "#d9ef8b", "#91cf60", "#1a9850"];
 var legend = L.control({ position: 'bottomright' });
 legend.onAdd = function () {
 
